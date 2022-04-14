@@ -36,7 +36,7 @@
     name: "ufw"
     state: present
     install_recommends: 'no'
-  when: ansible_os_family == "Debian"
+  when: ufw_enabled and ansible_os_family == "Debian"
   tags:
     - apt
     - packages
@@ -92,7 +92,7 @@
     state: present
     create: 'no'
     backrefs: 'yes'
-  when: ansible_os_family == "Debian"
+  when: ufw_enabled and ansible_os_family == "Debian"
   tags:
     - ufw
     - M1037
@@ -107,6 +107,7 @@
   failed_when: ufw_not_managed.rc > 1
   changed_when: false
   register: ufw_not_managed
+  when: ufw_enabled
   tags:
     - ufw
     - M1037
@@ -114,7 +115,7 @@
 - name: delete unmanaged ufw rules
   become: 'yes'
   ansible.builtin.command: ufw delete {{ item }}
-  when: ufw_not_managed.stdout_lines | length > 0
+  when: ufw_enabled and ufw_not_managed.stdout_lines | length > 0
   with_items:
     - "{{ ufw_not_managed.stdout_lines }}"
   tags:
@@ -129,7 +130,7 @@
     interface: lo
     direction: in
     comment: ansible managed
-  when: ansible_os_family == "Debian"
+  when: ufw_enabled and ansible_os_family == "Debian"
   tags:
     - ufw
     - CIS-UBUNTU2004-3.5.1.4
@@ -142,7 +143,7 @@
     interface: lo
     direction: out
     comment: ansible managed
-  when: ansible_os_family == "Debian"
+  when: ufw_enabled and ansible_os_family == "Debian"
   tags:
     - ufw
     - CIS-UBUNTU2004-3.5.1.4
@@ -158,7 +159,7 @@
     comment: ansible managed
   with_items:
     - "{{ sshd_admin_net }}"
-  when: ansible_os_family == "Debian"
+  when: ufw_enabled and ansible_os_family == "Debian"
   tags:
     - ufw
     - ssh
@@ -173,7 +174,7 @@
     comment: ansible managed
   with_items:
     - "{{ ufw_outgoing_traffic }}"
-  when: ansible_os_family == "Debian"
+  when: ufw_enabled and ansible_os_family == "Debian"
   tags:
     - ufw
     - CIS-UBUNTU2004-3.5.1.5
@@ -190,7 +191,7 @@
     log: 'yes'
     logging: low
     comment: ansible managed
-  when: ansible_os_family == "Debian"
+  when: ufw_enabled and ansible_os_family == "Debian"
   tags:
     - ufw
     - CIS-UBUNTU2004-3.5.1.7
@@ -206,7 +207,7 @@
     log: 'yes'
     logging: low
     comment: ansible managed
-  when: ansible_os_family == "Debian"
+  when: ufw_enabled and ansible_os_family == "Debian"
   tags:
     - ufw
     - CIS-UBUNTU2004-3.5.1.7
@@ -221,7 +222,7 @@
   loop:
     - 127.0.0.0/8
     - ::1
-  when: ansible_os_family == "Debian"
+  when: ufw_enabled and ansible_os_family == "Debian"
   tags:
     - ufw
     - CIS-UBUNTU2004-3.5.1.4
