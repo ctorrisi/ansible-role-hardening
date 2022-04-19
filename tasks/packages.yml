@@ -61,32 +61,32 @@
     - needrestart
     - packages
 
-- name: debian family package installation
-  become: 'yes'
-  ansible.builtin.apt:
-    name: "{{ packages_debian }}"
-    state: present
-    install_recommends: 'no'
-  when: ansible_os_family == "Debian"
-  tags:
-    - apt
-    - packages
-    - CIS-UBUNTU2004-1.6.1.1
-    - CIS-UBUNTU2004-4.1.1.1
-    - CIS-UBUNTU2004-4.2.1.1
-    - M1049
-    - UBTU-20-010005
+#- name: debian family package installation
+#  become: 'yes'
+#  ansible.builtin.apt:
+#    name: "{{ packages_debian }}"
+#    state: present
+#    install_recommends: 'no'
+#  when: ansible_os_family == "Debian"
+#  tags:
+#    - apt
+#    - packages
+#    - CIS-UBUNTU2004-1.6.1.1
+#    - CIS-UBUNTU2004-4.1.1.1
+#    - CIS-UBUNTU2004-4.2.1.1
+#    - M1049
+#    - UBTU-20-010005
 
-- name: ubuntu package installation
-  become: 'yes'
-  ansible.builtin.apt:
-    name: "{{ packages_ubuntu }}"
-    state: present
-    install_recommends: 'no'
-  when: ansible_distribution == "Ubuntu"
-  tags:
-    - apt
-    - packages
+#- name: ubuntu package installation
+#  become: 'yes'
+#  ansible.builtin.apt:
+#    name: "{{ packages_ubuntu }}"
+#    state: present
+#    install_recommends: 'no'
+#  when: ansible_distribution == "Ubuntu"
+#  tags:
+#    - apt
+#    - packages
 
 - name: ubuntu update-notifier-common package installation
   become: 'yes'

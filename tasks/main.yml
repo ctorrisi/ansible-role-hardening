@@ -121,8 +121,8 @@
 - name: lock root account
   ansible.builtin.include_tasks: lockroot.yml
 
-- name: configure postfix
-  ansible.builtin.include_tasks: postfix.yml
+#- name: configure postfix
+#  ansible.builtin.include_tasks: postfix.yml
 
 - name: configure motdnews
   ansible.builtin.include_tasks: motdnews.yml
