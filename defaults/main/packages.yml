@@ -22,25 +22,25 @@ packages_blocklist:
   - ypbind
 packages_debian:
   - acct
-  - apparmor-profiles
-  - apparmor-utils
+#  - apparmor-profiles
+#  - apparmor-utils
   - apt-show-versions
   - audispd-plugins
-  - auditd
+#  - auditd
   - cracklib-runtime
   - debsums
   - gnupg2
   - haveged
-  - libpam-apparmor
-  - libpam-cap
-  - libpam-modules
-  - libpam-pwquality
-  - libpam-tmpdir
+#  - libpam-apparmor
+#  - libpam-cap
+#  - libpam-modules
+#  - libpam-pwquality
+#  - libpam-tmpdir
   - lsb-release
   - needrestart
   - openssh-server
   - postfix
-  - rkhunter
+#  - rkhunter
   - rsyslog
   - sysstat
   - tcpd

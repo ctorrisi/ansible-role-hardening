@@ -2,15 +2,15 @@
 - name: configure local facts, install pexpect and epel-release
   ansible.builtin.include_tasks: pre.yml
 
-- name: install and configure firewalls
-  ansible.builtin.include_tasks:
-    file: firewall.yml
-    apply:
-      environment:
-        PATH: /usr/sbin:/sbin:/usr/local/sbin:/usr/local/bin:/bin
+#- name: install and configure firewalls
+#  ansible.builtin.include_tasks:
+#    file: firewall.yml
+#    apply:
+#      environment:
+#        PATH: /usr/sbin:/sbin:/usr/local/sbin:/usr/local/bin:/bin
 
-- name: configure sysctl
-  ansible.builtin.include_tasks: sysctl.yml
+#- name: configure sysctl
+#  ansible.builtin.include_tasks: sysctl.yml
 
 - name: disable kernel network modules
   ansible.builtin.include_tasks: disablenet.yml
@@ -60,8 +60,8 @@
 - name: configure ssh server and client
   ansible.builtin.include_tasks: sshconfig.yml
 
-- name: configure pam
-  ansible.builtin.include_tasks: password.yml
+#- name: configure pam
+#  ansible.builtin.include_tasks: password.yml
 
 - name: configure and clean at and cron
   ansible.builtin.include_tasks: cron.yml
@@ -69,8 +69,8 @@
 - name: disable ctrl-alt-del.target
   ansible.builtin.include_tasks: ctrlaltdel.yml
 
-- name: configure auditd
-  ansible.builtin.include_tasks: auditd.yml
+#- name: configure auditd
+#  ansible.builtin.include_tasks: auditd.yml
 
 - name: configure apparmor
   ansible.builtin.include_tasks: apparmor.yml
@@ -79,13 +79,13 @@
   ansible.builtin.include_tasks: disablemod.yml
 
 # https://bugs.launchpad.net/ubuntu/+source/aide/+bug/1903298
-- name: configure aide
-  ansible.builtin.include_tasks: aide.yml
-  when: >
-    install_aide|bool and
-    (not (ansible_os_family == "Debian" and
-    (ansible_lsb.codename == "groovy" or
-    ansible_lsb.codename == "hirsute")))
+#- name: configure aide
+#  ansible.builtin.include_tasks: aide.yml
+#  when: >
+#    install_aide|bool and
+#    (not (ansible_os_family == "Debian" and
+#    (ansible_lsb.codename == "groovy" or
+#    ansible_lsb.codename == "hirsute")))
 
 - name: manage users
   ansible.builtin.include_tasks: users.yml
@@ -100,20 +100,20 @@
 - name: set umask
   ansible.builtin.include_tasks: umask.yml
 
-- name: configure paths
-  ansible.builtin.include_tasks: path.yml
+#- name: configure paths
+#  ansible.builtin.include_tasks: path.yml
 
-- name: configure systemd logindconf
-  ansible.builtin.include_tasks: logindconf.yml
+#- name: configure systemd logindconf
+#  ansible.builtin.include_tasks: logindconf.yml
 
-- name: configure systemd resolvedconf
-  ansible.builtin.include_tasks: resolvedconf.yml
+#- name: configure systemd resolvedconf
+#  ansible.builtin.include_tasks: resolvedconf.yml
 
-- name: configure rkhunter
-  ansible.builtin.include_tasks: rkhunter.yml
+#- name: configure rkhunter
+#  ansible.builtin.include_tasks: rkhunter.yml
 
-- name: add issue message
-  ansible.builtin.include_tasks: issue.yml
+#- name: add issue message
+#  ansible.builtin.include_tasks: issue.yml
 
 - name: configure apport
   ansible.builtin.include_tasks: apport.yml
@@ -130,8 +130,8 @@
 - name: configure sudo
   ansible.builtin.include_tasks: sudo.yml
 
-- name: misc extra tasks
-  ansible.builtin.include_tasks: extras.yml
+#- name: misc extra tasks
+#  ansible.builtin.include_tasks: extras.yml
 
 - name: misc tasks after all handlers
   ansible.builtin.include_tasks: post.yml
