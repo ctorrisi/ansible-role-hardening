@@ -194,16 +194,16 @@
     - packages
     - qemu
 
-- name: rng-tools package installation
-  become: 'yes'
-  ansible.builtin.package:
-    name: rng-tools
-    state: present
-  when: ansible_local.cpuinfo.rdrand
-  tags:
-    - rng-tools
-    - packages
-    - CCE-82968-9
+#- name: rng-tools package installation
+#  become: 'yes'
+#  ansible.builtin.package:
+#    name: rng-tools
+#    state: present
+#  when: ansible_local.cpuinfo.rdrand
+#  tags:
+#    - rng-tools
+#    - packages
+#    - CCE-82968-9
 
 - name: stat sysstat default
   become: 'yes'
