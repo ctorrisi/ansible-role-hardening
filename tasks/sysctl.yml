@@ -6,7 +6,7 @@
     value: "{{ sysctl_dev_tty_ldisc_autoload|int }}"
     state: present
     sysctl_set: 'yes'
-  when: ansible_kernel is version("5",">=")
+  when: sysctl_settings | length > 0 and ansible_kernel is version("5",">=")
   tags:
     - sysctl
 
@@ -17,6 +17,7 @@
     value: "{{ sysctl_net_ipv6_conf_accept_ra_rtr_pref|int }}"
     state: present
     sysctl_set: 'yes'
+  when: sysctl_settings | length > 0
   tags:
     - sysctl
 
@@ -30,6 +31,7 @@
     state: present
     sysctl_set: 'yes'
   with_dict: "{{ sysctl_settings }}"
+  when: "{{ sysctl_settings | length > 0 }}"
   notify:
     - restart sysctl
   tags:
