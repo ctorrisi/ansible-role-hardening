@@ -2,7 +2,7 @@
 - name: set Debian family apparmor grub cmdline
   become: 'yes'
   ansible.builtin.lineinfile:
-    line: 'GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX apparmor=1 security=apparmor"'
+    line: 'GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX apparmor=1 security=apparmor systemd.unified_cgroup_hierarchy=0"'
     dest: /etc/default/grub.d/99-hardening-apparmor.cfg
     state: present
     create: 'yes'
