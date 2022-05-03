@@ -34,7 +34,7 @@
     dest: {{ sshd_trusted_user_ca_keys_file }}
     mode: 600
     content: |
-      {{ sshd_trusted_user_ca_keys }}
+      {{ sshd_trusted_user_ca_keys_base64 | b64decode }}
 
 - name: configure sshd
   become: 'yes'
