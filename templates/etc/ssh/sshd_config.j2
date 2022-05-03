@@ -9,6 +9,8 @@ AllowAgentForwarding {{ sshd_allow_agent_forwarding }}
 AllowTcpForwarding {{ sshd_allow_tcp_forwarding }}
 AuthenticationMethods {{ sshd_authentication_methods }}
 Banner {{ sshd_banner }}
+AuthorizedPrincipalsFile {{ sshd_authorized_principal_file }}
+TrustedUserCAKeys {{ sshd_trusted_user_ca_keys }}
 ChallengeResponseAuthentication {{ sshd_challenge_response_authentication }}
 Ciphers {{ sshd_ciphers }}
 ClientAliveCountMax {{ sshd_client_alive_count_max|int }}

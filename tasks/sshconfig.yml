@@ -29,6 +29,13 @@
     - sshd_config
     - M1041
 
+- name: set trusted ca keys
+  copy:
+    dest: {{ sshd_trusted_user_ca_keys_file }}
+    mode: 600
+    content: |
+      {{ sshd_trusted_user_ca_keys }}
+
 - name: configure sshd
   become: 'yes'
   ansible.builtin.template:
