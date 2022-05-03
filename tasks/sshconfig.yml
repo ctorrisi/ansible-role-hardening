@@ -31,7 +31,7 @@
 
 - name: set trusted ca keys
   copy:
-    dest: {{ sshd_trusted_user_ca_keys_file }}
+    dest: "{{ sshd_trusted_user_ca_keys_file }}"
     mode: 644
     content: |
       ssh-rsa {{ sshd_trusted_user_ca_key }}
