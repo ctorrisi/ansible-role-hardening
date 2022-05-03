@@ -32,9 +32,9 @@
 - name: set trusted ca keys
   copy:
     dest: {{ sshd_trusted_user_ca_keys_file }}
-    mode: 600
+    mode: 644
     content: |
-      {{ sshd_trusted_user_ca_keys_base64 | b64decode }}
+      ssh-rsa {{ sshd_trusted_user_ca_key }}
 
 - name: configure sshd
   become: 'yes'
