@@ -37,6 +37,7 @@
   ansible.builtin.file:
     dest: "{{ item.path }}"
     mode: 0444
+    state: file
   with_items:
     - "{{ update_motd_permissions.files }}"
   when: ansible_os_family == "Debian"
