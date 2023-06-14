@@ -67,6 +67,7 @@
     - /etc/cron.hourly
     - /etc/cron.weekly
     - /etc/cron.monthly
+  when: item is stat and item.stat.exists
   tags:
     - cron
     - CIS-UBUNTU2004-5.1.3
