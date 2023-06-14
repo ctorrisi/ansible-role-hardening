@@ -25,10 +25,10 @@
     - sshd_config
     - M1041
 
-- name: set trusted ca keys
-  copy:
+- name: Set trusted ca keys
+  ansible.builtin.copy:
     dest: "{{ sshd_trusted_user_ca_keys_file }}"
-    mode: 644
+    mode: "0644"
     content: |
       {{ sshd_trusted_user_ca_keys_base64 | b64decode }}
 
