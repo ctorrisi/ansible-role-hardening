@@ -69,7 +69,7 @@
 - name: Set cron permissions
   become: true
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ item.path }}"
     mode: "0700"
     owner: root
     group: root
