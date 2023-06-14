@@ -54,6 +54,18 @@
     - at
     - systemd
 
+- name: Stat cron files
+  become: true
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: cron_file_stat
+  with_items:
+    - /etc/cron.d
+    - /etc/cron.daily
+    - /etc/cron.hourly
+    - /etc/cron.weekly
+    - /etc/cron.monthly
+
 - name: Set cron permissions
   become: true
   ansible.builtin.file:
@@ -61,13 +73,8 @@
     mode: "0700"
     owner: root
     group: root
-  with_items:
-    - /etc/cron.d
-    - /etc/cron.daily
-    - /etc/cron.hourly
-    - /etc/cron.weekly
-    - /etc/cron.monthly
-  when: item is stat and item.stat.exists
+  with_items: "{{ cron_file_stat.results }}"
+  when: item.stat.exists
   tags:
     - cron
     - CIS-UBUNTU2004-5.1.3
