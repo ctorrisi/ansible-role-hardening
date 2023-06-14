@@ -63,3 +63,7 @@ sshd_tcp_keep_alive: "no"
 sshd_use_dns: "no"
 sshd_use_pam: "yes"
 sshd_x11_forwarding: "no"
+
+sshd_authorized_principal_file: /etc/ssh/auth_principals/%u
+sshd_trusted_user_ca_keys_base64: ''
+sshd_trusted_user_ca_keys_file: /etc/ssh/trusted-CA.pem

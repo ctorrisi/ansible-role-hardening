@@ -4,6 +4,7 @@
 
 - name: Configure systemd resolved
   ansible.builtin.include_tasks: resolvedconf.yml
+  when: resolved_enable
 
 - name: Install epel-release and python dependencies
   ansible.builtin.include_tasks: pre.yml
@@ -18,6 +19,7 @@
 
 - name: Configure sysctl
   ansible.builtin.include_tasks: sysctl.yml
+  when: sysctl_enable
 
 - name: Disable kernel network modules
   ansible.builtin.include_tasks: disablenet.yml
@@ -74,6 +76,7 @@
 
 - name: Configure PAM
   ansible.builtin.include_tasks: password.yml
+  when: pam_enable
 
 - name: Configure and clean at and cron
   ansible.builtin.include_tasks: cron.yml
@@ -83,6 +86,7 @@
 
 - name: Configure auditd
   ansible.builtin.include_tasks: auditd.yml
+  when: auditd_enable
 
 - name: Configure AppArmor
   ansible.builtin.include_tasks: apparmor.yml
@@ -118,15 +122,19 @@
 
 - name: Configure paths
   ansible.builtin.include_tasks: path.yml
+  when: paths_enable
 
 - name: Configure systemd logind
   ansible.builtin.include_tasks: logindconf.yml
+  when: logind_enable
 
 - name: Configure rkhunter
   ansible.builtin.include_tasks: rkhunter.yml
+  when: rkhunter_enable
 
 - name: Add issue message
   ansible.builtin.include_tasks: issue.yml
+  when: issue_enable
 
 - name: Configure apport
   ansible.builtin.include_tasks: apport.yml
@@ -136,6 +144,7 @@
 
 - name: Configure Postfix
   ansible.builtin.include_tasks: postfix.yml
+  when: postfix_enable
 
 - name: Configure motdnews
   ansible.builtin.include_tasks: motdnews.yml
@@ -145,6 +154,7 @@
 
 - name: Miscellaneous extra tasks
   ansible.builtin.include_tasks: extras.yml
+  when: extras_enable
 
 - name: Miscellaneous tasks after all handlers
   ansible.builtin.include_tasks: post.yml
