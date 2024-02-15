@@ -2,6 +2,7 @@
 manage_pam: true
 manage_paths: true
 manage_logind: true
+managed_systemd_resolved: true
 manage_rkhunter: true
 manage_issue: true
 manage_postfix: true
