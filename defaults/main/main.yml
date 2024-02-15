@@ -6,6 +6,7 @@ manage_apparmor: true
 manage_paths: true
 manage_logind: true
 manage_logindefs: true
+manage_adduser: true
 manage_packages: true
 manage_hosts: true
 managed_systemd_resolved: true
