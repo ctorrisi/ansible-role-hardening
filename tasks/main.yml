@@ -195,7 +195,7 @@
 - name: Add issue message
   ansible.builtin.include_tasks:
     file: issue.yml
-  manage: manage_issue
+  when: manage_issue
 
 - name: Configure apport
   ansible.builtin.include_tasks:
