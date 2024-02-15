@@ -12,6 +12,7 @@ manage_hosts: true
 managed_systemd_resolved: true
 manage_rkhunter: true
 manage_issue: true
+manage_apport: true
 manage_postfix: true
 manage_motdnews: true
 manage_root_access: true
