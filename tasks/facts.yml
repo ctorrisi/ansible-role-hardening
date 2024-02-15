@@ -115,6 +115,7 @@
       when:
         - ansible_os_family == "RedHat"
         - "'pam' in ansible_facts.packages"
+  when: manage_pam
 
 - name: Set hashing algorithm for password (yescrypt|sha512)
   ansible.builtin.set_fact:
@@ -124,6 +125,7 @@
     - pam
     - CIS-UBUNTU2204-5.4.4
     - M1041
+  when: manage_pam
 
 - name: Update current facts
   ansible.builtin.setup:
