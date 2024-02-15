@@ -1,2 +1,3 @@
 ---
 rsyslog_filecreatemode: "0640"
+journald_system_max_use: 50M
