@@ -1,0 +1,10 @@
+---
+manage_pam: true
+manage_paths: true
+manage_logind: true
+manage_rkhunter: true
+manage_issue: true
+manage_postfix: true
+manage_motdnews: true
+manage_sudo: true
+manage_extras: true

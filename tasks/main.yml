@@ -117,6 +117,7 @@
 - name: Configure PAM
   ansible.builtin.include_tasks:
     file: password.yml
+  when: manage_pam
 
 - name: Configure and clean at and cron
   ansible.builtin.include_tasks:
@@ -178,18 +179,22 @@
 - name: Configure paths
   ansible.builtin.include_tasks:
     file: path.yml
+  when: manage_paths
 
 - name: Configure systemd logind
   ansible.builtin.include_tasks:
     file: logindconf.yml
+  when: manage_logind
 
 - name: Configure rkhunter
   ansible.builtin.include_tasks:
     file: rkhunter.yml
+  when: manage_rkhunter
 
 - name: Add issue message
   ansible.builtin.include_tasks:
     file: issue.yml
+  manage: manage_issue
 
 - name: Configure apport
   ansible.builtin.include_tasks:
@@ -202,18 +207,22 @@
 - name: Configure Postfix
   ansible.builtin.include_tasks:
     file: postfix.yml
+  when: manage_postfix
 
 - name: Configure motdnews
   ansible.builtin.include_tasks:
     file: motdnews.yml
+  when: manage_motdnews
 
 - name: Configure sudo
   ansible.builtin.include_tasks:
     file: sudo.yml
+  when: manage_sudo
 
 - name: Miscellaneous extra tasks
   ansible.builtin.include_tasks:
     file: extras.yml
+  when: manage_extras
 
 - name: Miscellaneous tasks after all handlers
   ansible.builtin.include_tasks:
