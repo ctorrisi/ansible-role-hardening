@@ -1,7 +1,13 @@
 ---
 manage_pam: true
+manage_cron: true
+manage_ctlaltdel: true
+manage_apparmor: true
 manage_paths: true
 manage_logind: true
+manage_logindefs: true
+manage_packages: true
+manage_hosts: true
 managed_systemd_resolved: true
 manage_rkhunter: true
 manage_issue: true

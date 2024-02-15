@@ -78,20 +78,24 @@
 - name: Configure package managers, update caches and install updates
   ansible.builtin.include_tasks:
     file: packagemgmt.yml
+  when: manage_packages
 
 - name: Configure automatic updates
   ansible.builtin.include_tasks:
     file: automatic_updates.yml
   when:
+    - manage_packages
     - automatic_updates
 
 - name: Configure hosts.allow and hosts.deny
   ansible.builtin.include_tasks:
     file: hosts.yml
+  when: manage_hosts
 
 - name: Configure login.defs
   ansible.builtin.include_tasks:
     file: logindefs.yml
+  when: manage_logindefs
 
 - name: Set limits
   ansible.builtin.include_tasks:
@@ -100,14 +104,17 @@
 - name: Configure adduser and useradd
   ansible.builtin.include_tasks:
     file: adduser.yml
+  when: manage_adduser
 
 - name: Restrict root access
   ansible.builtin.include_tasks:
     file: rootaccess.yml
+  when: manage_root_access
 
 - name: Configure needrestart, install and remove various packages
   ansible.builtin.include_tasks:
     file: packages.yml
+  when: manage_packages
 
 - name: Configure ssh server and client
   ansible.builtin.include_tasks:
@@ -123,11 +130,13 @@
 - name: Configure and clean at and cron
   ansible.builtin.include_tasks:
     file: cron.yml
+  when: manage_cron
 
 - name: Disable systemd ctrl-alt-del.target
   ansible.builtin.include_tasks:
     file: ctrlaltdel.yml
   when:
+    - manage_ctlaltdel
     - ansible_virtualization_type not in ["container", "docker", "podman"]
 
 - name: Configure auditd
@@ -140,6 +149,7 @@
   ansible.builtin.include_tasks:
     file: apparmor.yml
   when:
+    - manage_apparmor
     - ansible_virtualization_type not in ["container", "docker", "podman"]
 
 - name: Disable wireless interfaces
@@ -200,6 +210,7 @@
 - name: Configure apport
   ansible.builtin.include_tasks:
     file: apport.yml
+  when: manage_apport
 
 - name: Lock root account
   ansible.builtin.include_tasks:
