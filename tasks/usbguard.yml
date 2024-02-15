@@ -17,6 +17,13 @@
       when:
         - ansible_os_family == "RedHat"
 
+    - name: SLES family USBGuard package installation
+      ansible.builtin.zypper:
+        name: usbguard
+        state: present
+      when:
+        - ansible_os_family == "SLES"
+
     - name: Configure RuleFile
       ansible.builtin.lineinfile:
         regexp: (^|^#)RuleFile
