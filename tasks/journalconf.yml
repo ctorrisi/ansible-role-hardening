@@ -57,6 +57,8 @@
     mode: "0750"
     state: present
     create: true
+  when:
+    - ansible_os_family != 'Suse'
   tags:
     - cron
     - logrotate
