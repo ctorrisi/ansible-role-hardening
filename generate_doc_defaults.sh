@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+set -e -o pipefail
 
 if [ -z "${ANSIBLE_V}" ]; then
   ANSIBLE_V="$(grep min_ansible_version meta/main.yml | awk '{print $NF}' | tr -d '\"')"
@@ -16,7 +18,7 @@ and requires Ansible version ${ANSIBLE_V} or higher.
 The role supports the following operating systems:
 
 - [AlmaLinux 9](https://wiki.almalinux.org/release-notes/#almalinux-9)
-- [Debian 11 (Bullseye)](https://www.debian.org/releases/bullseye/)
+- [AlmaLinux 10](https://wiki.almalinux.org/release-notes/#almalinux-10)
 - [Debian 12 (Bookworm)](https://www.debian.org/releases/bookworm/)
 - [Ubuntu 22.04 (Jammy Jellyfish)](https://releases.ubuntu.com/jammy/)
 - [Ubuntu 24.04 (Noble Numbat)](https://releases.ubuntu.com/noble/)
@@ -36,9 +38,12 @@ this Ansible role is used for configuration.
 > [slsa action workflow](https://github.com/konstruktoid/ansible-role-hardening/actions/workflows/slsa.yml)
 > for verification.
 
-## Dependencies
+> **Note**
+> All options and defaults are documented in [defaults/main.yml](defaults/main.yml)
+> and [meta/argument_specs.yml](meta/argument_specs.yml).
+> \`ansible-doc -t role\` can be used to view the documentation for this role as
+> well.
 
-None.
 
 ## Examples
 
@@ -48,7 +53,7 @@ None.
 ---
 roles:
   - name: konstruktoid.hardening
-    version: v3.3.0
+    version: v4.3.0
     src: https://github.com/konstruktoid/ansible-role-hardening.git
     scm: git
 \`\`\`
@@ -65,11 +70,26 @@ roles:
       ansible.builtin.import_role:
         name: konstruktoid.hardening
       vars:
+        kernel_lockdown: true
+        manage_suid_sgid_permissions: false
         sshd_admin_net:
           - 10.0.2.0/24
           - 192.168.0.0/24
           - 192.168.1.0/24
-        manage_suid_sgid_permissions: false
+        sshd_allow_groups:
+          - sudo
+        sshd_update_moduli: true
+        sshd_match_users:
+          - user: testuser01
+            rules:
+              - AllowUsers testuser01
+              - AuthenticationMethods password
+              - PasswordAuthentication yes
+          - user: testuser02
+            rules:
+              - AllowUsers testuser02
+              - Banner none
+        ufw_rate_limit: true
 \`\`\`
 
 ### Local playbook using git checkout
@@ -95,7 +115,7 @@ roles:
           ansible.builtin.git:
             repo: https://github.com/konstruktoid/ansible-role-hardening
             dest: /etc/ansible/roles/konstruktoid.hardening
-            version: v3.3.0
+            version: v4.3.0
 
         - name: Remove git
           ansible.builtin.package:
@@ -117,8 +137,8 @@ roles:
 ## Note regarding UFW firewall rules
 
 Instead of resetting \`ufw\` every run and by doing so causing network traffic
-disruption, the role deletes every \`ufw\` rule without
-\`comment: ansible managed\` task parameter and value.
+disruption, the role deletes every \`ufw\` rule that doesn't have a comment
+ending with \`ansible managed\`.
 
 The role also sets default deny policies, which means that firewall rules
 needs to be created for any additional ports except those specified in
@@ -134,16 +154,20 @@ See [STRUCTURE.md](STRUCTURE.md) for tree of the role structure.
 ## Role testing
 
 See [TESTING.md](TESTING.md).
-"
-echo '## Role Variables with defaults'
 
-for variables in $(find ./defaults -type f | sort); do
-  echo; echo "### $variables"
-  echo
-  echo '```yaml'
-  grep -vE '^#|---|\.\.\.' "$variables"
-  echo '```'
-done
+<!-- BEGIN_ANSIBLE_DOCS -->
+
+<!-- END_ANSIBLE_DOCS -->
+
+## Dependencies
+
+This role requires the following Ansible collections to be installed:
+
+- \`ansible.posix\`
+- \`community.crypto\`
+- \`community.general\`
+
+Install using the requirements file with \`ansible-galaxy install -r requirements.yml\`."
 
 echo
 echo "## Recommended Reading
@@ -166,6 +190,18 @@ Do you want to contribute? Great! Contributions are always welcome,
 no matter how large or small. If you found something odd, feel free to submit a
 issue, improve the code by creating a pull request, or by
 [sponsoring this project](https://github.com/sponsors/konstruktoid).
+
+### Guidelines
+
+The [argument_specs.yml](meta/argument_specs.yml) file is used to generate the
+documentation and defaults for this role, so please ensure that any changes
+made to the role are also reflected in the \`argument_specs.yml\` file.
+
+After making changes, run \`bash generate_doc_defaults.sh\` to regenerate the defaults file,
+README and other documentation files.
+
+Last but not least, ensure that the role passes all tests by running
+\`tox run -e devel,docker\`.
 
 ## License
 
@@ -210,7 +246,7 @@ tox -l
 echo '```'
 } > ./TESTING.md
 
-rm ./*.log ./*.html ./*.list
+rm ./*.log ./*.html ./*.list || true
 
 {
 echo "# Structure
@@ -221,3 +257,10 @@ echo '```sh'
 tree .
 echo '```'
 } > ./STRUCTURE.md
+
+aar-doc --output-template aar-doc_template.j2 "$(pwd)" markdown
+
+python3 generate_defaults.py meta/argument_specs.yml > defaults/main.yml || exit 1
+
+ansible-lint --fix . &>/dev/null
+ansible-lint --fix .

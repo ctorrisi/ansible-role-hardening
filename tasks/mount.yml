@@ -45,7 +45,7 @@
   become: true
   when:
     - tmp_mount.stat.exists
-    - ansible_virtualization_type not in ["container", "docker", "podman"]
+    - ansible_facts.virtualization_type not in ["container", "docker", "podman"]
   block:
     - name: Remove /tmp from fstab
       ansible.posix.mount:
@@ -53,12 +53,15 @@
         state: absent
 
     - name: Unmask tmp.mount
-      ansible.builtin.systemd:
+      ansible.builtin.systemd_service:
         name: tmp.mount
         masked: false
 
     - name: Start tmp.mount
-      ansible.builtin.systemd:
+      environment:
+        TMP: /var/tmp
+        TMPDIR: /var/tmp
+      ansible.builtin.systemd_service:
         name: tmp.mount
         daemon_reload: true
         state: started

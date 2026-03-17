@@ -1,50 +1,75 @@
 ---
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Intersect installed packages with blocklist
+  ansible.builtin.set_fact:
+    blocked_installed_packages: "{{ ansible_facts.packages.keys() | intersect(packages_blocklist) }}"
+
 - name: Generic package removal
   become: true
   ansible.builtin.package:
-    name: "{{ packages_blocklist }}"
+    name: "{{ item }}"
     state: absent
-  register: package_removal
-  failed_when:
-    - package_removal is not success
-    - not "No package" in package_removal.msg
+  loop: "{{ blocked_installed_packages }}"
+  when: blocked_installed_packages | length > 0
 
-- name: Debian family package installation
+- name: Debian family package management
   become: true
-  ansible.builtin.apt:
-    name: "{{ packages_debian }}"
-    state: present
-    install_recommends: false
-    update_cache: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive
   when:
-    - ansible_os_family == "Debian"
-    - packages_debian | length > 0
-  notify:
-    - Run apt-get clean
-    - Run apt-get autoremove
+    - ansible_facts.os_family == "Debian"
+  block:
+    - name: Debian family package installation
+      ansible.builtin.apt:
+        name: "{{ packages_debian }}"
+        state: present
+        install_recommends: false
+        update_cache: true
+      when:
+        - ansible_facts.os_family == "Debian"
+        - packages_debian | length > 0
+      notify:
+        - Run apt-get clean
+        - Run apt-get autoremove
 
-- name: Ubuntu package installation
-  become: true
-  ansible.builtin.apt:
-    name: "{{ packages_ubuntu }}"
-    state: present
-    install_recommends: false
-    update_cache: true
-  when:
-    - ansible_distribution == "Ubuntu"
-    - packages_ubuntu | length > 0
-  notify:
-    - Run apt-get clean
-    - Run apt-get autoremove
+    - name: Ubuntu package installation
+      ansible.builtin.apt:
+        name: "{{ packages_ubuntu }}"
+        state: present
+        install_recommends: false
+        update_cache: true
+      when:
+        - ansible_facts.distribution == "Ubuntu"
+        - packages_ubuntu | length > 0
+      notify:
+        - Run apt-get clean
+        - Run apt-get autoremove
 
-- name: Ubuntu update-notifier-common package installation
-  become: true
-  ansible.builtin.apt:
-    name: update-notifier-common
-    state: present
-    install_recommends: false
-  when:
-    - ansible_distribution == "Ubuntu"
+    - name: Install unattended-upgrades support package
+      ansible.builtin.apt:
+        name: "{{ 'apt-config-auto-update' if (ansible_facts.distribution == 'Debian') else 'update-notifier-common' }}"
+        state: present
+        install_recommends: false
+      notify:
+        - Run apt-get clean
+        - Run apt-get autoremove
+
+    - name: Run apt purge
+      become: true
+      ansible.builtin.apt:
+        name: "{{ packages_blocklist }}"
+        state: absent
+        purge: true
+      register: apt_purge
+      failed_when:
+        - apt_purge is not success
+        - not "No package" in apt_purge.msg
+      notify:
+        - Run apt-get clean
+        - Run apt-get autoremove
 
 - name: RedHat family package installation
   become: true
@@ -53,26 +78,10 @@
     state: present
     update_cache: true
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_facts.os_family == "RedHat"
     - packages_redhat | length > 0
   notify:
     - Run dnf autoremove
-
-- name: Run apt purge
-  become: true
-  ansible.builtin.apt:
-    name: "{{ packages_blocklist }}"
-    state: absent
-    purge: true
-  register: apt_purge
-  failed_when:
-    - apt_purge is not success
-    - not "No package" in apt_purge.msg
-  when:
-    - ansible_os_family == "Debian"
-  notify:
-    - Run apt-get clean
-    - Run apt-get autoremove
 
 - name: VirtualBox guest packages installation
   become: true
@@ -86,8 +95,8 @@
       - virtualbox-guest-utils
   register: virtualbox_packages
   when:
-    - ansible_virtualization_type == "VirtualBox"
-    - ansible_distribution == "Ubuntu"
+    - ansible_facts.virtualization_type == "VirtualBox"
+    - ansible_facts.distribution == "Ubuntu"
   failed_when:
     - virtualbox_packages is not success
     - not "No package matching" in virtualbox_packages.msg
@@ -98,7 +107,7 @@
     name: open-vm-tools
     state: present
   when:
-    - ansible_virtualization_type == "VMware"
+    - ansible_facts.virtualization_type == "VMware"
 
 - name: QEMU package installation
   become: true
@@ -106,24 +115,24 @@
     name: qemu-guest-agent
     state: present
   when:
-    - ansible_system_vendor == "QEMU"
+    - ansible_facts.system_vendor == "QEMU"
 
 - name: Install and start rngd
   become: true
   when:
-    - ansible_flags is defined
-    - "'rdrand' in ansible_flags"
-    - ansible_virtualization_type not in ["container", "docker", "podman"]
+    - ansible_facts.flags is defined
+    - "'rdrand' in ansible_facts.flags"
+    - ansible_facts.virtualization_type not in ["container", "docker", "podman"]
   block:
     - name: Install rngd
       ansible.builtin.package:
         name: "{{ item }}"
         state: present
       loop:
-        - "{{ 'rng-tools5' if (ansible_os_family == 'Debian') else 'rng-tools' }}"
+        - "{{ 'rng-tools5' if (ansible_facts.os_family == 'Debian') else 'rng-tools' }}"
 
     - name: Start and enable rngd service
-      ansible.builtin.systemd:
+      ansible.builtin.systemd_service:
         name: rngd
         state: started
         enabled: true
@@ -155,14 +164,14 @@
     clean: true
   changed_when: false
   when:
-    - ansible_os_family == "Debian"
+    - ansible_facts.os_family == "Debian"
 
 - name: Run dnf autoremove
   become: true
   ansible.builtin.dnf:
     autoremove: true
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_facts.os_family == "RedHat"
 
 - name: Populate package facts
   ansible.builtin.package_facts:

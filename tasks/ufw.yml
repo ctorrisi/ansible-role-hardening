@@ -1,4 +1,16 @@
 ---
+- name: Install additional kernel modules
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop:
+    - kernel-modules-extra-{{ ansible_facts.kernel }}
+    - kernel-modules-extra
+  when:
+    - ansible_facts.os_family == "RedHat"
+
 - name: Add the nf_conntrack module
   become: true
   community.general.modprobe:
@@ -31,7 +43,7 @@
     state: present
     install_recommends: false
   when:
-    - ansible_os_family == "Debian"
+    - ansible_facts.os_family == "Debian"
 
 - name: RedHat family UFW installation
   become: true
@@ -40,7 +52,7 @@
     state: present
     update_cache: true
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_facts.os_family == "RedHat"
 
 - name: Get available physical interfaces
   ansible.builtin.command:
@@ -74,13 +86,15 @@
     'deny (outgoing)' not in ufw_status.stdout or
     'disabled (routed)' not in ufw_status.stdout
   block:
-    - name: Enable UFW service
-      ansible.builtin.systemd:
-        name: ufw
-        enabled: true
-        state: started
-      when:
-        - ansible_virtualization_type not in ["container", "docker", "podman"]
+    - name: Allow sshd port from administrator networks
+      community.general.ufw:
+        rule: "{{ 'limit' if ufw_rate_limit else 'allow' }}"
+        from_ip: "{{ item.0 }}"
+        to_port: "{{ item.1 | int }}"
+        proto: tcp
+        comment: ansible managed
+        state: enabled
+      loop: "{{ sshd_admin_net | product(sshd_ports) | list }}"
 
     - name: Set default deny
       community.general.ufw:
@@ -94,12 +108,20 @@
         - incoming
         - outgoing
 
+    - name: Enable and start the UFW service
+      ansible.builtin.systemd_service:
+        name: ufw
+        enabled: true
+        state: started
+      when:
+        - ansible_facts.virtualization_type not in ["container", "docker", "podman"]
+
 - name: Stat UFW rules
   become: true
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
-      ufw show added | grep '^ufw' | grep -i -v "'ansible\smanaged'" | sed 's/ufw //g'
+      ufw show added | grep '^ufw' | grep -i -v "comment '.*ansible\smanaged'" | sed 's/ufw //g'
   args:
     executable: /bin/bash
   changed_when: false
@@ -118,15 +140,6 @@
       loop: "{{ physical_interfaces.stdout_lines }}"
       when:
         - ufw_rate_limit
-
-    - name: Allow sshd port from administrator networks
-      community.general.ufw:
-        rule: limit
-        from_ip: "{{ item.0 }}"
-        to_port: "{{ item.1 | int }}"
-        proto: tcp
-        comment: ansible managed
-      loop: "{{ sshd_admin_net | product(sshd_ports) | list }}"
 
     - name: Allow outgoing specified ports
       community.general.ufw:
@@ -166,10 +179,18 @@
         comment: ansible managed
 
     - name: Delete unmanaged UFW rules
-      ansible.builtin.command:
-        cmd: ufw delete {{ item }}
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          if [[ "{{ item }}" == route* ]]; then
+            ufw route delete {{ item | regex_replace('^route ', '') }}
+          else
+            ufw delete {{ item }}
+          fi
+      args:
+        executable: /bin/bash
       register: ufw_delete
-      changed_when: ufw_delete.rc != 0
+      changed_when: ufw_delete.rc == 0
       failed_when: ufw_delete.rc != 0
       when:
         - ufw_not_managed.stdout_lines | length > 0

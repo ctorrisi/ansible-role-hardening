@@ -4,6 +4,20 @@
   when:
     - manage_sudo
   block:
+    - name: Check sudo type
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          sudo --version | head -n 1
+      args:
+        executable: /bin/bash
+      register: sudo_type_check
+      changed_when: false
+
+    - name: Set fact for sudo type
+      ansible.builtin.set_fact:
+        sudo_rs_present: "{{ 'sudo-rs' in sudo_type_check.stdout or 'sudo-rs' in sudo_type_check.stderr }}"
+
     - name: Configure sudo use_pty
       ansible.builtin.lineinfile:
         line: Defaults use_pty
@@ -21,6 +35,8 @@
         state: present
         create: true
         validate: visudo -cf %s
+      when:
+        - not sudo_rs_present
 
     - name: Configure sudo disable pwfeedback
       ansible.builtin.lineinfile:
@@ -71,6 +87,8 @@
         state: present
         create: true
         validate: visudo -cf %s
+      when:
+        - not sudo_rs_present
 
     - name: Configure sudo user password for privilege escalation
       ansible.builtin.lineinfile:
@@ -82,8 +100,18 @@
         validate: visudo -cf %s
       loop:
         - "!rootpw"
-        - "!runaspw"
         - "!targetpw"
+
+    - name: Configure sudo user password for privilege escalation
+      ansible.builtin.lineinfile:
+        line: Defaults !runaspw
+        dest: /etc/sudoers.d/018_userpassword
+        mode: "0440"
+        state: present
+        create: true
+        validate: visudo -cf %s
+      when:
+        - not sudo_rs_present
 
 - name: Create su group sugroup
   become: true

@@ -131,7 +131,11 @@ argument_specs:
       unattended_upgrades_template:
         description: "APT unattended-upgrades template location."
         type: "path"
-        default: "etc/apt/apt.conf.d/50unattended-upgrades.j2"
+        default: "etc/apt/apt.conf.d/52unattended-upgrades-local.j2"
+      unattended_upgrades_custom_origins_template:
+        description: "APT unattended-upgrades for custom origins template location."
+        type: "path"
+        default: "etc/apt/apt.conf.d/53unattended-upgrades-custom-origins.j2"
       user_conf_template:
         description: "systemd user.conf template location."
         type: "path"
@@ -155,7 +159,7 @@ argument_specs:
       faillock:
         type: "dict"
         default:
-          - admin_group: []
+          - admin_group: ""
           - audit: true
           - deny: 5
           - dir: "/var/run/faillock"
@@ -171,8 +175,7 @@ argument_specs:
         options:
           admin_group:
             description: "Members of the group will be handled the same as the root account"
-            type: "list"
-            elements: "str"
+            type: "str"
           audit:
             description: "Will log the user name into the system log if the user is not found"
             type: "bool"
@@ -209,13 +212,18 @@ argument_specs:
       login_defs:
         type: "dict"
         default:
+          - home_mode: "0700"
           - login_retries: 5
           - login_timeout: 60
           - pass_max_days: 60
           - pass_min_days: 1
           - pass_warn_age: 7
+          - usergroups_enabled: true
         description: "login.defs configuration options."
         options:
+          home_mode:
+            description: "The permissions assigned to a newly created user's home directory."
+            type: "int"
           login_retries:
             description: "Maximum number of login retries in case of bad password."
             type: "int"
@@ -232,6 +240,10 @@ argument_specs:
           pass_warn_age:
             description: "The number of days before password expiration that the user will be warned about the impending expiration."
             type: "int"
+          usergroups_enabled:
+            description: "If True, userdel will remove the user's group if it's empty, and useradd will create by default a group with the name of the user. It also
+              modifies the UMASK default value for private user groups."
+            type: "bool"
       password_remember:
         description: "The number of previous passwords to remember and not allow the user to reuse."
         type: "int"
@@ -339,12 +351,12 @@ argument_specs:
         type: "bool"
         default: "True"
       fallback_ntp:
-        description: "A space-separated list of NTP server host names or IP addresses to be used as the fallback NTP servers."
+        description: "A list of NTP server host names or IP addresses to be used as the fallback NTP servers."
         type: "list"
         elements: "str"
         default: "['ntp.netnod.se', 'ntp.ubuntu.com']"
       ntp:
-        description: "A space-separated list of NTP server host names or IP addresses to be used as the primary NTP servers."
+        description: "A list of NTP server host names or IP addresses to be used as the primary NTP servers."
         type: "list"
         elements: "str"
         default: "['2.pool.ntp.org', 'time.nist.gov']"
@@ -575,6 +587,22 @@ argument_specs:
         type: "list"
         elements: "str"
         default: "['hmac-sha2-512-etm@openssh.com', 'hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512', 'hmac-sha2-256']"
+      sshd_match_addresses:
+        description: "Add a conditional block for addresses. If all of the criteria on the Match line are satisfied, the rules/parameters defined override those set
+          in the global section of the config file, until either another Match line or the end of the file."
+        type: "list"
+      sshd_match_groups:
+        description: "Add a conditional block for groups. If all of the criteria on the Match line are satisfied, the rules/parameters defined override those set
+          in the global section of the config file, until either another Match line or the end of the file."
+        type: "list"
+      sshd_match_local_ports:
+        description: "Add a conditional block for ports. If all of the criteria on the Match line are satisfied, the rules/parameters defined override those set in
+          the global section of the config file, until either another Match line or the end of the file."
+        type: "list"
+      sshd_match_users:
+        description: "Add a conditional block for users. If all of the criteria on the Match line are satisfied, the rules/parameters defined override those set in
+          the global section of the config file, until either another Match line or the end of the file."
+        type: "list"
       sshd_max_auth_tries:
         description: "Specifies the maximum number of authentication attempts permitted per connection."
         type: "int"
@@ -925,6 +953,10 @@ argument_specs:
         description: "The user that has access to the journal files."
         type: "str"
         default: "root"
+      journald_system_max_use:
+        description: "How much disk space the journal may use up at most."
+        type: "str"
+        default: ""
       manage_sysctl:
         description: "If True, manage C(sysctl) settings."
         type: "bool"
@@ -944,7 +976,7 @@ argument_specs:
       apparmor_sysctl_settings:
         type: "dict"
         default:
-          - kernel.apparmor_diplay_secid_mode: 0
+          - kernel.apparmor_display_secid_mode: 0
           - kernel.apparmor_restrict_unprivileged_io_uring: 0
           - kernel.apparmor_restrict_unprivileged_unconfined: 1
           - kernel.apparmor_restrict_unprivileged_userns: 1
@@ -1005,9 +1037,10 @@ argument_specs:
           - kernel.randomize_va_space: 2
           - kernel.sysrq: 0
           - kernel.unprivileged_bpf_disabled: 1
+          - kernel.unprivileged_userns_clone: 0
           - kernel.yama.ptrace_scope: 2
           - net.core.bpf_jit_harden: 2
-          - user.max_user_namespaces: 62967
+          - user.max_user_namespaces: 0
         description: "Generic sysctl settings."
         options:
           fs.protected_fifos:
@@ -1095,8 +1128,14 @@ argument_specs:
               - 0
               - 1
               - 2
+          kernel.unprivileged_userns_clone:
+            description: "Controls whether unprivilegd users can create user namespaces."
+            type: "int"
+            choices:
+              - 0
+              - 1
           kernel.yama.ptrace_scope:
-            description: "Select the what processes can be debugged with ptrace."
+            description: "Select which processes can be debugged with ptrace."
             type: "int"
             default: 2
             choices:
@@ -1453,6 +1492,7 @@ argument_specs:
           - reboot: false
           - reboot_from_time: "2:00"
           - reboot_time_margin_mins: 20
+          - custom_origins: ""
         description: "Configure automatic updates."
         options:
           enabled:
@@ -1470,6 +1510,11 @@ argument_specs:
           reboot_time_margin_mins:
             description: "Add minutes to the reboot time, set using C(reboot_from_time)."
             type: "int"
+          custom_origins:
+            description: "Add custom origins to unattended upgrades through a list of strings. For Debian it is \"origin=<ORIGIN>,archive=<ARCHIVE>\". For Ubuntu
+              it is \"<ORIGIN>:<ARCHIVE>\"."
+            type: "list"
+            elements: "str"
       manage_netplan:
         description: "If True, then any available netplan configuration files will have the permissions set to 0600."
         type: "bool"
@@ -1524,15 +1569,15 @@ argument_specs:
         description: "Packages that will be removed from the system if they are installed."
         type: "list"
         elements: "str"
-        default: "['apport*', 'autofs', 'avahi*', 'avahi-*', 'beep', 'ftp', 'git', 'inetutils-telnet', 'pastebinit', 'popularity-contest', 'prelink', 'rpcbind', 'rsh*',
-          'rsync', 'talk*', 'telnet*', 'tftp*', 'tnftp', 'tuned', 'whoopsie', 'xinetd', 'yp-tools', 'ypbind']"
+        default: "['apport', 'autofs', 'avahi', 'beep', 'ftp', 'git', 'inetutils-telnet', 'pastebinit', 'popularity-contest', 'prelink', 'rpcbind', 'rsh', 'rsh-server',
+          'rsync', 'talk', 'telnet', 'telnet-server', 'tftp', 'tftpd', 'tnftp', 'tuned', 'vsftpd', 'whoopsie', 'xinetd', 'yp-tools', 'ypbind']"
       packages_debian:
         description: "Packages to install on Debian-based systems."
         type: "list"
         elements: "str"
-        default: "['acct', 'apparmor-profiles', 'apparmor-utils', 'apt-show-versions', 'audispd-plugins', 'auditd', 'cracklib-runtime', 'curl', 'debsums', 'gnupg2',
-          'libpam-apparmor', 'libpam-cap', 'libpam-modules', 'libpam-tmpdir', 'lsb-release', 'needrestart', 'openssh-server', 'postfix', 'rsyslog', 'sysstat', 'systemd-journal-remote',
-          'tcpd', 'vlock', 'wamerican']"
+        default: "['acct', 'apparmor-profiles', 'apparmor-utils', 'apt-listchanges', 'apt-show-versions', 'audispd-plugins', 'auditd', 'cracklib-runtime', 'curl',
+          'debsums', 'gnupg2', 'libpam-apparmor', 'libpam-cap', 'libpam-modules', 'libpam-tmpdir', 'lsb-release', 'needrestart', 'openssh-server', 'postfix', 'rsyslog',
+          'sysstat', 'systemd-journal-remote', 'tcpd', 'vlock', 'wamerican']"
       packages_redhat:
         description: "Packages to install on Red Hat-based systems."
         type: "list"
@@ -1552,7 +1597,7 @@ argument_specs:
         type: "dict"
         default:
           - killuserprocesses: true
-          - killexcludeusers: ["root"]
+          - killexcludeusers: "['root']"
           - idleaction: "lock"
           - idleactionsec: "15min"
           - removeipc: true
@@ -1660,6 +1705,10 @@ argument_specs:
           - "incremental"
           - "none"
           - "sync"
+      auditd_ignore_errors:
+        description: "If True, the audit daemon will ignore errors when reading rules from a file."
+        type: "bool"
+        default: false
       auditd_max_log_file:
         description: "This keyword specifies the maximum file size in megabytes. When this limit is reached, it will trigger a configurable action."
         type: "int"
@@ -1717,14 +1766,14 @@ argument_specs:
         type: "bool"
         default: "True"
       session_timeout:
-        description: "Sets, in seconds, the TMOUT environment variable if systemd version is 252 or lower. If systemd version is higher than 252, the session_timeout
-          value will be set as StopIdleSessionSec."
+        description: "Sets, in seconds, the TMOUT environment variable if systemd version is 252 or lower. If version 252 or higher, the session_timeout value will
+          be set as StopIdleSessionSec."
         type: "int"
         default: 900
       umask_value:
         description: "Sets the default umask value."
         type: "int"
-        default: "077"
+        default: "0077"
       manage_kernel:
         description: "If True, then additional kernel settings will be configured."
         type: "bool"
@@ -1755,3 +1804,11 @@ argument_specs:
         description: "Enable SLUB debugger poisoning."
         type: "bool"
         default: "False"
+      manage_password:
+        description: "Manage PAM and various password settings."
+        type: "bool"
+        default: "True"
+      manage_packages:
+        description: "If True, then the role will install the packages listed in C(packages_debian), C(packages_redhat) and C(packages_ubuntu)."
+        type: "bool"
+        default: "True"

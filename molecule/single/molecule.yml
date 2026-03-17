@@ -12,7 +12,7 @@ provisioner:
     defaults:
       callback_whitelist: profile_tasks
   env:
-    ANSIBLE_ROLES_PATH: ~/.cache/molecule/ansible-role-hardening/${MOLECULE_SCENARIO_NAME}/roles:${MOLECULE_PROJECT_DIRECTORY}/..:~/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..:/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles
   playbooks:
     converge: ../default/converge.yml
     verify: ../default/verify.yml
@@ -20,12 +20,26 @@ provisioner:
   inventory:
     host_vars:
       noble:
+        automatic_updates:
+          enabled: true
+          only_security: true
+          reboot: true
+          reboot_from_time: "2:00"
+          reboot_time_margin_mins: 1
+          custom_origins:
+            - "Docker:noble"
         kernel_lockdown: true
         sshd_admin_net:
           - 0.0.0.0/0
         sshd_allow_groups:
           - vagrant
           - sudo
+        sshd_kex_algorithms:
+          - "sntrup761x25519-sha512@openssh.com"
+          - "curve25519-sha256@libssh.org"
+          - "diffie-hellman-group16-sha512"
+          - "diffie-hellman-group18-sha512"
+          - "ecdh-sha2-nistp521"
         sshd_update_moduli: true
         sshd_match_users:
           - user: testuser01

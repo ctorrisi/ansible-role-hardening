@@ -12,12 +12,13 @@ Before running any test:
 ```console
 almalinux/10-kitten-x86_64_v2
 bento/almalinux-9
+bento/debian-13
 bento/ubuntu-22.04
 bento/ubuntu-24.04
 debian/bookworm64
 debian/testing64
 docker.io/debian:bookworm
-docker.io/ubuntu:jammy
+docker.io/ubuntu:noble
 konstruktoid/ubuntu-25.04
 ```
 
@@ -32,8 +33,7 @@ repository if the host is using [Ubuntu](https://ubuntu.com/ "Ubuntu").
 
 ```console
 devel
-py312-ansible11
-py312-ansibledevel
-py313-ansible11
-py313-ansibledevel
+docker
+docker-upstream
+upstream
 ```

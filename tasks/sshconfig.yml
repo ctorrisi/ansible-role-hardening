@@ -3,7 +3,7 @@
   environment:
     PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin/
   ansible.builtin.command:
-    cmd: "{{ 'ssh -V' if ansible_distribution == 'Debian' else 'sshd -V' }}"
+    cmd: "{{ 'ssh -V' if ansible_facts.distribution == 'Debian' else 'sshd -V' }}"
   changed_when: false
   failed_when: false
   check_mode: false
@@ -17,7 +17,7 @@
   ansible.builtin.debug:
     msg: "{{ ssh_installed_version }}"
 
-- name: Ensure privilege separation directory exists
+- name: Ensure privilege separation directories exist
   become: true
   ansible.builtin.file:
     path: "{{ item.path }}"
@@ -25,6 +25,10 @@
     group: root
     state: directory
     mode: "{{ item.mode }}"
+  register: privsep_dir
+  changed_when:
+    - privsep_dir is changed
+    - not (item.path == '/run/sshd' and ansible_facts.distribution == 'Ubuntu')
   loop:
     - { path: /run/sshd, mode: "0755" }
     - { path: /usr/share/empty.sshd, mode: "0711" }
@@ -145,7 +149,7 @@
 
         mode: "{{ sshd_host_keys_mode }}"
         owner: "{{ sshd_host_keys_owner }}"
-        group: "{{ 'ssh_keys' if (ansible_os_family == 'RedHat' and ansible_distribution_major_version < '10') else sshd_host_keys_group }}"
+        group: "{{ 'ssh_keys' if (ansible_facts.os_family == 'RedHat' and ansible_facts.distribution_major_version < '10') else sshd_host_keys_group }}"
         regenerate: partial_idempotence
 
     - name: Generate SSH ECDSA keypair
@@ -156,7 +160,7 @@
         path: /etc/ssh/ssh_host_ecdsa_key
         mode: "{{ sshd_host_keys_mode }}"
         owner: "{{ sshd_host_keys_owner }}"
-        group: "{{ 'ssh_keys' if (ansible_os_family == 'RedHat' and ansible_distribution_major_version < '10') else sshd_host_keys_group }}"
+        group: "{{ 'ssh_keys' if (ansible_facts.os_family == 'RedHat' and ansible_facts.distribution_major_version < '10') else sshd_host_keys_group }}"
         regenerate: partial_idempotence
       when:
         - ssh_installed_version is version('6.0', '>=')
@@ -168,7 +172,7 @@
         path: /etc/ssh/ssh_host_ed25519_key
         mode: "{{ sshd_host_keys_mode }}"
         owner: "{{ sshd_host_keys_owner }}"
-        group: "{{ 'ssh_keys' if (ansible_os_family == 'RedHat' and ansible_distribution_major_version < '10') else sshd_host_keys_group }}"
+        group: "{{ 'ssh_keys' if (ansible_facts.os_family == 'RedHat' and ansible_facts.distribution_major_version < '10') else sshd_host_keys_group }}"
         regenerate: partial_idempotence
       when:
         - ssh_installed_version is version('6.5', '>=')
@@ -216,10 +220,10 @@
   ansible.builtin.set_fact:
     sshd_config_force_replace: true
   when: >
-    sshd_match_users | length > 0 or
-    sshd_match_groups | length > 0 or
-    sshd_match_addresses | length > 0 or
-    sshd_match_local_ports | length > 0 or
+    sshd_match_users is defined and sshd_match_users | length > 0 or
+    sshd_match_groups is defined and sshd_match_groups | length > 0 or
+    sshd_match_addresses is defined and sshd_match_addresses| length > 0 or
+    sshd_match_local_ports is defined and sshd_match_local_ports | length > 0 or
     (sshd_sftp_only_group is defined and sshd_sftp_only_group | length != 0)
 
 - name: Create trusted ca keys
@@ -232,7 +236,7 @@
     owner: root
     group: root
   when:
-    - sshd_trusted_user_ca_keys_base64
+    - sshd_trusted_user_ca_keys_base64 | length > 0
     - sshd_trusted_user_ca_keys_file
 
 - name: Configure sshd
@@ -250,7 +254,8 @@
     (not sshd_config_d.stat.exists) or
     (grep_include.rc != 0)
   notify:
-    - Restart sshd service
+    - Disable ssh service
+    - Restart ssh socket
     - Restart ssh service
 
 - name: Configure sshd using sshd_config.d
@@ -268,7 +273,8 @@
     - sshd_config_d.stat.exists
     - grep_include.rc == 0
   notify:
-    - Restart sshd service
+    - Disable ssh service
+    - Restart ssh socket
     - Restart ssh service
 
 - name: Remove possible Subsystem duplicate

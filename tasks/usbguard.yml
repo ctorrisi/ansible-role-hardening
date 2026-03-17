@@ -16,21 +16,21 @@
         state: present
         install_recommends: false
       when:
-        - ansible_os_family == "Debian"
+        - ansible_facts.os_family == "Debian"
 
     - name: RedHat family USBGuard package installation
       ansible.builtin.dnf:
         name: usbguard
         state: present
       when:
-        - ansible_os_family == "RedHat"
+        - ansible_facts.os_family == "RedHat"
 
     - name: Suse family USBGuard package installation
       community.general.zypper:
         name: usbguard
         state: present
       when:
-        - ansible_os_family == "Suse"
+        - ansible_facts.os_family == "Suse"
 
     - name: Configure RuleFile
       ansible.builtin.lineinfile:
@@ -153,7 +153,7 @@
         backrefs: true
 
     - name: Start and enable USBGuard
-      ansible.builtin.systemd:
+      ansible.builtin.systemd_service:
         name: usbguard
         enabled: true
         masked: false
@@ -183,7 +183,7 @@
       block:
         - name: Write policy
           ansible.builtin.lineinfile:
-            path: /etc/usbguard/rules.conf
+            path: "{{ usbguard_rulefile }}"
             line: "{{ item }}"
             owner: root
             group: root
@@ -193,6 +193,6 @@
             - "{{ usbguard_policy.stdout_lines }}"
 
         - name: Restart USBGuard
-          ansible.builtin.systemd:
+          ansible.builtin.systemd_service:
             name: usbguard
             state: restarted

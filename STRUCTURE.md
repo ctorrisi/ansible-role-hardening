@@ -3,76 +3,27 @@
 
 ```sh
 .
-├── CODEOWNERS
-├── LICENSE
-├── README.md
-├── SECURITY.md
-├── STRUCTURE.md
-├── TESTING.md
-├── Vagrantfile
+├── aar-doc_template.j2
 ├── action-lint
 │   ├── Dockerfile
 │   └── entrypoint.sh
+├── CODEOWNERS
 ├── defaults
-│   └── main
-│       ├── adduser.yml
-│       ├── aide.yml
-│       ├── apparmor.yml
-│       ├── apport.yml
-│       ├── auditd.yml
-│       ├── automatic_updates.yml
-│       ├── compilers.yml
-│       ├── cron.yml
-│       ├── crypto_policies.yml
-│       ├── ctrlaltdel.yml
-│       ├── disablewireless.yml
-│       ├── dns.yml
-│       ├── fstab.yml
-│       ├── hosts.yml
-│       ├── ipv6.yml
-│       ├── issue.yml
-│       ├── journal.yml
-│       ├── kernel.yml
-│       ├── limits.yml
-│       ├── lockroot.yml
-│       ├── logind.yml
-│       ├── logindefs.yml
-│       ├── misc.yml
-│       ├── module_blocklists.yml
-│       ├── motdnews.yml
-│       ├── mount.yml
-│       ├── netplan.yml
-│       ├── ntp.yml
-│       ├── packagemgmt.yml
-│       ├── packages.yml
-│       ├── password.yml
-│       ├── path.yml
-│       ├── postfix.yml
-│       ├── prelink.yml
-│       ├── rkhunter.yml
-│       ├── rootaccess.yml
-│       ├── sshd.yml
-│       ├── sudo.yml
-│       ├── suid_sgid_blocklist.yml
-│       ├── sysctl.yml
-│       ├── systemdconf.yml
-│       ├── templates.yml
-│       ├── ufw.yml
-│       ├── umask.yml
-│       ├── usbguard.yml
-│       └── users.yml
+│   └── main.yml
 ├── files
 │   └── usr
 │       └── share
 │           └── dict
 │               └── passwords.list
-├── genREADME.sh
+├── generate_defaults.py
+├── generate_doc_defaults.sh
+├── generate_molecule_env.sh
 ├── handlers
 │   └── main.yml
+├── LICENSE
 ├── meta
 │   ├── argument_specs.yml
-│   ├── main.yml
-│   └── requirements.yml -> ../requirements.yml
+│   └── main.yml
 ├── molecule
 │   ├── almalinux
 │   │   └── molecule.yml
@@ -91,10 +42,14 @@
 │   └── ubuntu
 │       └── molecule.yml
 ├── postChecks.sh
+├── README.md
 ├── renovate.json
 ├── requirements-dev.txt
+├── requirements-upstream.txt
 ├── requirements.yml
 ├── runTests.sh
+├── SECURITY.md
+├── STRUCTURE.md
 ├── tasks
 │   ├── adduser.yml
 │   ├── aide.yml
@@ -102,8 +57,8 @@
 │   ├── apport.yml
 │   ├── auditd.yml
 │   ├── automatic_updates.yml
-│   ├── compilers.yml
 │   ├── compilers_dnf_post_transaction_actions_plugin.yml
+│   ├── compilers.yml
 │   ├── cron.yml
 │   ├── ctrlaltdel.yml
 │   ├── disablewireless.yml
@@ -114,8 +69,8 @@
 │   ├── ipv6.yml
 │   ├── issue.yml
 │   ├── journalconf.yml
-│   ├── kernel.yml
 │   ├── kernelmodules.yml
+│   ├── kernel.yml
 │   ├── limits.yml
 │   ├── lockroot.yml
 │   ├── logindconf.yml
@@ -128,10 +83,10 @@
 │   ├── packages.yml
 │   ├── password.yml
 │   ├── path.yml
-│   ├── post.yml
 │   ├── postfix.yml
-│   ├── pre.yml
+│   ├── post.yml
 │   ├── prelink.yml
+│   ├── pre.yml
 │   ├── resolvedconf.yml
 │   ├── rkhunter.yml
 │   ├── rootaccess.yml
@@ -153,7 +108,8 @@
 │   │   │       └── sshkeys.fact
 │   │   ├── apt
 │   │   │   └── apt.conf.d
-│   │   │       └── 50unattended-upgrades.j2
+│   │   │       ├── 52unattended-upgrades-local.j2
+│   │   │       └── 53unattended-upgrades-custom-origins.j2
 │   │   ├── audit
 │   │   │   └── rules.d
 │   │   │       └── hardening.rules.j2
@@ -202,11 +158,13 @@
 │       └── lib
 │           └── tmpfiles.d
 │               └── ssh.conf.j2
+├── TESTING.md
 ├── tests
 │   ├── debug_facts.yml
 │   ├── inventory
 │   └── test.yml
-└── tox.ini
+├── tox.ini
+└── Vagrantfile
 
-41 directories, 164 files
+40 directories, 123 files
 ```

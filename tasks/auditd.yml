@@ -7,11 +7,28 @@
         name: initscripts
         state: present
       when:
-        - ansible_os_family == "RedHat"
+        - ansible_facts.os_family == "RedHat"
+
+    - name: Install audit-rules
+      ansible.builtin.package:
+        name: audit-rules
+        state: present
+      when:
+        - ansible_facts.distribution == "AlmaLinux"
+        - ansible_facts.distribution_major_version | int >= 10
+
+    - name: Ensure /etc/audit/rules.d exists
+      ansible.builtin.file:
+        path: /etc/audit/rules.d
+        state: directory
+        mode: "0755"
+        owner: root
+        group: root
 
     - name: Configure Debian auditd GRUB cmdline
       ansible.builtin.lineinfile:
         line: GRUB_CMDLINE_LINUX="$GRUB_CMDLINE_LINUX {{ grub_audit_cmdline }} {{ grub_audit_backlog_cmdline }}"
+        regexp: "^GRUB_CMDLINE_LINUX="
         dest: /etc/default/grub.d/99-hardening-audit.cfg
         state: present
         create: true
@@ -19,7 +36,7 @@
         owner: root
         group: root
       when:
-        - ansible_os_family == "Debian"
+        - ansible_facts.os_family == "Debian"
       notify:
         - Update GRUB
 
@@ -30,8 +47,8 @@
       changed_when: grubby_update_kernel.rc != 0
       failed_when: grubby_update_kernel.rc != 0
       when:
-        - ansible_os_family == "RedHat"
-        - ansible_virtualization_type not in ["container", "docker", "podman"]
+        - ansible_facts.os_family == "RedHat"
+        - ansible_facts.virtualization_type not in ["container", "docker", "podman"]
 
     - name: Configure auditd action_mail_acct
       ansible.builtin.lineinfile:
@@ -153,5 +170,4 @@
         - auditd_apply_audit_rules | bool
       notify:
         - Generate auditd rules
-        - Restart Debian auditd
-        - Restart RedHat auditd
+        - Enable auditd
