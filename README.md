@@ -11,8 +11,9 @@ The role supports the following operating systems:
 - [AlmaLinux 9](https://wiki.almalinux.org/release-notes/#almalinux-9)
 - [AlmaLinux 10](https://wiki.almalinux.org/release-notes/#almalinux-10)
 - [Debian 12 (Bookworm)](https://www.debian.org/releases/bookworm/)
-- [Ubuntu 22.04 (Jammy Jellyfish)](https://releases.ubuntu.com/jammy/)
+- [Debian 13 (trixie)](https://www.debian.org/releases/trixie/)
 - [Ubuntu 24.04 (Noble Numbat)](https://releases.ubuntu.com/noble/)
+- [Ubuntu 26.04 (Resolute Raccoon)](https://releases.ubuntu.com/resolute/)
 
 For those using AWS or Azure, there are also hardened Ubuntu Amazon
 Machine Images (AMIs) and Azure virtual machine images available.
@@ -35,6 +36,11 @@ this Ansible role is used for configuration.
 > `ansible-doc -t role` can be used to view the documentation for this role as
 > well.
 
+> **Note**
+> This role has been migrated to the
+> [ansible-collection-hardening](https://github.com/konstruktoid/ansible-collection-hardening)
+> collection, and switching to that is recommended for continued updates and support.
+
 
 ## Examples
 
@@ -44,7 +50,7 @@ this Ansible role is used for configuration.
 ---
 roles:
   - name: konstruktoid.hardening
-    version: v4.3.0
+    version: v4.6.0
     src: https://github.com/konstruktoid/ansible-role-hardening.git
     scm: git
 ```
@@ -58,7 +64,7 @@ roles:
   any_errors_fatal: true
   tasks:
     - name: Import the hardening role
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: konstruktoid.hardening
       vars:
         kernel_lockdown: true
@@ -285,7 +291,7 @@ See [TESTING.md](TESTING.md).
 | manage_issue | If True, then `/etc/issue`, `/etc/issue.net` and `/etc/motd` will be replaced with the available templates. | True |
 | manage_kernel_modules | If True, then the listed modules will be blocked and blacklisted. | True |
 | fs_modules_blocklist | Filesystem kernel modules to block and blacklist. | ['cramfs', 'freevxfs', 'hfs', 'hfsplus', 'jffs2', 'squashfs', 'udf'] |
-| misc_modules_blocklist | Misc kernel modules to block and blacklist. | ['bluetooth', 'bnep', 'btusb', 'can', 'cpia2', 'firewire-core', 'floppy', 'ksmbd', 'n_hdlc', 'net-pf-31', 'pcspkr', 'soundcore', 'thunderbolt', 'usb-midi', 'usb-storage', 'uvcvideo', 'v4l2_common'] |
+| misc_modules_blocklist | Misc kernel modules to block and blacklist. | ['algif_aead', 'bluetooth', 'bnep', 'btusb', 'can', 'cpia2', 'esp4', 'esp6', 'firewire-core', 'floppy', 'ksmbd', 'n_hdlc', 'net-pf-31', 'pcspkr', 'rxrpc', 'soundcore', 'thunderbolt', 'usb-midi', 'usb-storage', 'uvcvideo', 'v4l2_common'] |
 | net_modules_blocklist | Network kernel modules to block and blacklist. | ['atm', 'dccp', 'sctp', 'rds', 'tipc'] |
 | manage_compilers | If True, then the listed compilers will restricted to the root user. | True |
 | compilers | Compilers to restrict to the root user. | ['as', 'cargo', 'cc', 'cc-[0-9]*', 'clang-[0-9]*', 'gcc', 'gcc-[0-9]*', 'go', 'make', 'rustc'] |
@@ -389,6 +395,7 @@ See [TESTING.md](TESTING.md).
 | grub_audit_cmdline | Enable auditd in the GRUB command line. | audit=1 |
 | manage_systemd | If True, then the role will configure /etc/systemd/system.conf and /etc/systemd/user.conf using the available templates. | True |
 | session_timeout | Sets, in seconds, the TMOUT environment variable if systemd version is 252 or lower. If version 252 or higher, the session_timeout value will be set as StopIdleSessionSec. | 900 |
+| manage_umask | If True, set the default umask value of the system to the value of the variable `umask_value` | True |
 | umask_value | Sets the default umask value. | 0077 |
 | manage_kernel | If True, then additional kernel settings will be configured. | True |
 | allow_virtual_system_calls | Allow virtual system calls (vsyscall). | True |

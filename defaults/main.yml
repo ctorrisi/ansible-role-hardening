@@ -439,6 +439,9 @@ manage_timesyncd: true
 # If True, manage C(UFW) installation and configuration.
 manage_ufw: true
 
+# If True, set the default umask value of the system to the value of the variable  "umask_value"
+manage_umask: true
+
 # If True, manage C(USBGuard) installation and configuration.
 manage_usbguard: true
 
@@ -447,17 +450,21 @@ manage_users: true
 
 # Misc kernel modules to block and blacklist.
 misc_modules_blocklist:
+  - "algif_aead"
   - "bluetooth"
   - "bnep"
   - "btusb"
   - "can"
   - "cpia2"
+  - "esp4"
+  - "esp6"
   - "firewire-core"
   - "floppy"
   - "ksmbd"
   - "n_hdlc"
   - "net-pf-31"
   - "pcspkr"
+  - "rxrpc"
   - "soundcore"
   - "thunderbolt"
   - "usb-midi"
